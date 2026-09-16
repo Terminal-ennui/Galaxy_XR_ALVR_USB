@@ -1,4 +1,4 @@
-# Galaxy XR ALVR USB — Beta 0.1, stable baseline
+# Galaxy XR ALVR USB — Beta 0.2, stable ALVR 20.14.1
 
 Stream Windows SteamVR content to Samsung Galaxy XR over a USB 3 data cable using a small client compatibility patch and the **official, unmodified ALVR stable 20.14.1 server**.
 
@@ -8,10 +8,14 @@ This is compressed VR streaming, not DisplayPort input. SteamVR is still require
 
 ### 1. Download the matching files
 
-- [Stable-baseline APK builds](https://github.com/Terminal-ennui/Galaxy_XR_ALVR_USB/actions/workflows/build-apk.yml): select a successful run for this stable-baseline PR/branch and download its artifact. Extract `Galaxy-XR-ALVR.apk`. Check `BUILD-INFO.txt` says ALVR **20.14.1**. Older artifacts and the original Beta 0.1 release use a different version; do not mix them.
+- [Beta 0.2 release — start here](https://github.com/Terminal-ennui/Galaxy_XR_ALVR_USB/releases/tag/v0.2.0-beta): published downloads for the stable baseline, including the exact headset-tested APK.
+- [Download the Galaxy XR headset APK](https://github.com/Terminal-ennui/Galaxy_XR_ALVR_USB/releases/download/v0.2.0-beta/Galaxy-XR-ALVR.apk): save `Galaxy-XR-ALVR.apk`.
+- [Download the Beta 0.2 setup ZIP](https://github.com/Terminal-ennui/Galaxy_XR_ALVR_USB/releases/download/v0.2.0-beta/Galaxy-XR-ALVR-beta-0.2-setup.zip): extract the instructions and both PowerShell helpers beside the APK. The ZIP does not contain the APK or platform-tools.
 - [Official ALVR stable 20.14.1 Windows server ZIP](https://github.com/alvr-org/ALVR/releases/download/v20.14.1/alvr_streamer_windows.zip). Extract it into its own folder.
 - [Official stable release page](https://github.com/alvr-org/ALVR/releases/tag/v20.14.1): choose `alvr_streamer_windows.zip`, not Linux or a debug ZIP. Use **our patched headset APK**, not the upstream Android APK.
 - [Google Android platform-tools](https://developer.android.com/tools/releases/platform-tools): download the Windows version and extract `platform-tools` beside the APK and `Connect-USB.ps1`.
+
+Check the release's `BUILD-INFO.txt` says ALVR **20.14.1**. The original Beta 0.1 release uses a different client baseline; do not mix versions. Use the published Beta 0.2 APK for normal setup, not a random Actions artifact.
 
 The PC needs Steam, SteamVR, and a VR-capable GPU. Use a **USB 3 data cable connected directly to a USB 3 PC port**, and the headset's data port. You can charge the external battery separately.
 
@@ -34,7 +38,7 @@ The launcher name is **ALVR Stable Test**, package `alvr.client.stabletest`. It 
 .\platform-tools\adb.exe shell monkey -p alvr.client.stabletest -c android.intent.category.LAUNCHER 1
 ```
 
-**Signing warning:** CI uses a temporary debug key. A new build usually cannot update a copy signed with a different key. Do not uninstall a working client without saving its settings; uninstalling deletes app data. Retained release signing is not configured. The newly generated CI package still needs its own headset acceptance test.
+**Signing warning:** The Beta 0.2 APK uses its original temporary CI debug key. A differently signed build cannot update an installed copy. Do not uninstall a working client without saving what you need; uninstalling deletes app data. Retained release signing is not configured. Beta 0.2 distributes the exact headset-tested APK; separately generated CI packages need their own acceptance tests.
 
 ### 3. Set up USB forwarding
 
@@ -146,7 +150,7 @@ The stable patch adds Android XR runtime/Full Space declarations, a separate lau
 
 Local stable-client tests passed several headset removal/resume cycles. The CI-built stable APK was subsequently installed and reported visually smooth over USB and Wi-Fi. Sleep/resume and connection timeouts can still occur; off-head keep-awake is not guaranteed. Compilation alone is not hardware acceptance. No AV1, 10-bit, HDR, or 90 Hz support is claimed by this build.
 
-See [ACTIONS.txt](ACTIONS.txt), [SETUP.txt](SETUP.txt), and [BUILD-PRIVACY.txt](BUILD-PRIVACY.txt). CI artifact downloads require GitHub sign-in and expire after 14 days. Release publication is separate.
+Use the [published Beta 0.2 release](https://github.com/Terminal-ennui/Galaxy_XR_ALVR_USB/releases/tag/v0.2.0-beta) for normal installation. [Actions builds](https://github.com/Terminal-ennui/Galaxy_XR_ALVR_USB/actions/workflows/build-apk.yml) are separate developer/test artifacts: their downloads require GitHub sign-in, expire after 14 days, and may have different signing keys. See [ACTIONS.txt](ACTIONS.txt), [SETUP.txt](SETUP.txt), and [BUILD-PRIVACY.txt](BUILD-PRIVACY.txt).
 
 [Report a problem](https://github.com/Terminal-ennui/Galaxy_XR_ALVR_USB/issues) with versions, GPU/driver, codec, Hz, per-eye size, target Mbps, and reproduction steps. Review logs before posting; remove personal names, serials, network addresses, paths, and credentials.
 

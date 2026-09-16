@@ -1,7 +1,9 @@
-GALAXY XR ALVR USB — Beta 0.1 stable baseline
+GALAXY XR ALVR USB — Beta 0.2 stable baseline
 
-1. Get our stable-baseline Galaxy-XR-ALVR.apk from a successful GitHub Actions
-   run. BUILD-INFO.txt must say ALVR 20.14.1. Do not use an older nightly artifact.
+1. Download Galaxy-XR-ALVR.apk and Galaxy-XR-ALVR-beta-0.2-setup.zip from:
+   https://github.com/Terminal-ennui/Galaxy_XR_ALVR_USB/releases/tag/v0.2.0-beta
+   Extract the setup ZIP beside the APK. BUILD-INFO.txt must say ALVR 20.14.1.
+   GitHub Actions artifacts are separate developer/test builds, not the release.
 2. Download and extract the official Windows server:
    https://github.com/alvr-org/ALVR/releases/download/v20.14.1/alvr_streamer_windows.zip
    Release page: https://github.com/alvr-org/ALVR/releases/tag/v20.14.1

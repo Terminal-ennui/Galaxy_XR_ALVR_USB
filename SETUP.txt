@@ -1,4 +1,4 @@
-Galaxy XR ALVR USB — Beta 0.1 stable baseline
+Galaxy XR ALVR USB — Beta 0.2 stable baseline
 Source patch: MIT, upstream notices preserved.
 
 Base: ALVR stable 20.14.1
@@ -16,7 +16,7 @@ target SDK 35, a separate alvr.client.stabletest / ALVR Stable Test launcher,
 The stable upstream decoder is retained. No experimental 10-bit, 90 Hz,
 instrumentation, or Windows-driver patches are included.
 
-Reproducible build: use the repository's Build Galaxy XR APK - Beta 0.1 Action.
+Reproducible build: use the repository's Build Galaxy XR APK - Beta 0.2 Action.
 It pins Rust 1.97.1, Android NDK 27.2.12479018, Java 17, target SDK 35,
 cargo-apk revision and generic Khronos OpenXR loader 1.1.36.
 See ci/build-apk.sh for the exact dependency setup, build and privacy audit.

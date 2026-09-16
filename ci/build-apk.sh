@@ -62,5 +62,5 @@ curl --fail --location --retry 3 \
   --output "$project_root/dist/OpenXR-LICENSE.txt"
 cd "$project_root/dist"
 sha256sum Galaxy-XR-ALVR.apk > SHA256SUMS.txt
-printf 'Project version: Beta 0.1 stable baseline\nALVR version: 20.14.1\nPackage: alvr.client.stabletest\nProject commit: %s\nALVR commit: %s\nOpenXR loader: 1.1.36\nSigning: ephemeral Android debug key; test only\n' \
+printf 'Project version: Beta 0.2 stable baseline\nALVR version: 20.14.1\nPackage: alvr.client.stabletest\nProject commit: %s\nALVR commit: %s\nOpenXR loader: 1.1.36\nSigning: ephemeral Android debug key; test only\n' \
   "$GITHUB_SHA" "$expected_commit" > BUILD-INFO.txt
