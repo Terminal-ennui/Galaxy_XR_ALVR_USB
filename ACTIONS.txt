@@ -2,7 +2,7 @@ HOW TO GET A GITHUB-BUILT APK
 
 Project version: Beta 0.1.
 The Action is named "Build Galaxy XR APK - Beta 0.1".
-It builds pinned upstream ALVR plus this repository's Galaxy XR client patch.
+It builds pinned stable ALVR 20.14.1 plus this repository's Galaxy XR client patch.
 It does not upload anyone's local APK and does not publish a GitHub Release.
 
 For maintainers:
@@ -20,7 +20,8 @@ For testers:
 5. Use the matching PC server specified by SETUP.txt.
 
 GitHub artifact downloads require a signed-in account and repository access.
-The artifact is retained for 14 days. This private repo is not yet a public download.
+The artifact is retained for 14 days. Select a stable-baseline run and verify
+BUILD-INFO.txt says 20.14.1; older nightly artifacts are not interchangeable.
 Builds run on relevant pushes/PRs; manual Run workflow appears after the workflow
 exists on the default branch. No signing secrets are needed for these test builds.
 

@@ -1,62 +1,29 @@
-Galaxy XR ALVR USB -- Beta 0.1 proof of concept
+Galaxy XR ALVR USB — Beta 0.1 stable baseline
+Source patch: MIT, upstream notices preserved.
 
-License: MIT. See LICENSE. Upstream copyright notices are preserved.
+Base: ALVR stable 20.14.1
+Pinned commit: a9f6542fa507a841f40ab4f3fcb531427cd02550
+Official matching server:
+https://github.com/alvr-org/ALVR/releases/download/v20.14.1/alvr_streamer_windows.zip
+https://github.com/alvr-org/ALVR/releases/tag/v20.14.1
 
-This repository contains a client compatibility patch, not a complete ALVR fork.
-Upstream: https://github.com/alvr-org/ALVR
-Required base commit: ca2decae968f2fd37b43b777cca4ba597808ba52
-Use a matching unmodified ALVR server (21.0.0-dev13).
+Use our Galaxy XR client APK, not the upstream Android APK. Do not mix nightly
+and stable clients/servers. Windows server modifications are not required.
 
-Official matching Windows server download:
-https://github.com/alvr-org/ALVR-nightly/releases/download/v21.0.0-dev13%2Bnightly.2026.09.16/alvr_streamer_windows.zip
-Release notes confirm the required upstream source commit:
-https://github.com/alvr-org/ALVR-nightly/releases/tag/v21.0.0-dev13%2Bnightly.2026.09.16
-Use our patched headset APK, not the upstream APK from that release.
-This official binary has not yet been tested here; the demonstrated unmodified
-server was locally built from the same commit.
-General stable releases (not the version specified for this proof of concept):
-https://github.com/alvr-org/ALVR/releases
+The minimal client patch adds Android XR runtime access and Full Space metadata,
+target SDK 35, a separate alvr.client.stabletest / ALVR Stable Test launcher,
+72 Hz capability fallback, and a 1440-per-eye lobby for Galaxy XR.
+The stable upstream decoder is retained. No experimental 10-bit, 90 Hz,
+instrumentation, or Windows-driver patches are included.
 
-The patch selects a SurfaceTexture decoder output path on Galaxy XR, configures
-the coded stereo frame dimensions, and uses the runtime-recommended lobby size.
-It raises the Android target SDK to 35. Experimental server modifications and
-temporary lobby geometry logging are not included.
+Reproducible build: use the repository's Build Galaxy XR APK - Beta 0.1 Action.
+It pins Rust 1.97.1, Android NDK 27.2.12479018, Java 17, target SDK 35,
+cargo-apk revision and generic Khronos OpenXR loader 1.1.36.
+See ci/build-apk.sh for the exact dependency setup, build and privacy audit.
+The workflow checks out ALVR recursively at the pinned stable commit,
+applies patches/galaxy-xr-client.patch and builds the release-mode debug-signed APK.
+Output: dist/Galaxy-XR-ALVR.apk plus checksum and build provenance.
+Keep signing keys private. Temporary CI signing does not provide stable update keys.
 
-Build in a separate upstream checkout:
-  git clone https://github.com/alvr-org/ALVR.git
-  cd ALVR
-  git checkout ca2decae968f2fd37b43b777cca4ba597808ba52
-  git submodule update --init --recursive
-  git apply /path/to/galaxy-xr-client.patch
-  cargo xtask prepare-deps --platform android
-  cargo xtask build-client --release
-
-Install upstream's required Android SDK/NDK and Rust build dependencies first.
-No private signing keys or prebuilt APKs are distributed here.
-The APK produced after applying this cleaned patch must be rebuilt and tested.
-
-Direct Windows USB setup:
-  Install Android platform-tools.
-  Enable USB debugging on the headset and authorize the PC.
-  Connect the headset's data USB port directly to the PC.
-  adb devices
-  adb forward tcp:9943 tcp:9943
-  adb forward tcp:9944 tcp:9944
-
-In the ALVR server, trust the physical headset and set its manual IP to
-127.0.0.1. Select TCP streaming. Open the client on the headset and start SteamVR.
-Use the Windows local console session, not an active Remote Desktop session.
-ADB must remain running; recreate forwarding after reconnection.
-
-Observed proof-of-concept setting:
-  HEVC, 72 Hz, 2560 x 2560 per eye, 200 Mbps target, SDR, foveation disabled.
-The user reported a clean image. Actual sustained bitrate, long-duration game
-performance and 500 Mbps operation have not been established.
-These settings are not a stability guarantee.
-
-This is compressed streaming over ADB USB, not DisplayPort input.
-Calibration extraction, firmware modifications and bootloader changes are
-not required. Off-head XR-session keep-awake behavior remains unverified.
-
-Upstream ALVR and contributors retain their copyright and license rights.
-Retain all upstream license notices when building or redistributing binaries.
+Install and USB setup: follow START-HERE.txt and README.md.
+Recommended personal-rig settings and benchmark caveats are in README.md.

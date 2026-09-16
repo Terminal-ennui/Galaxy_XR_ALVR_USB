@@ -3,7 +3,7 @@ set -euo pipefail
 
 project_root=$(cd "$(dirname "$0")/.." && pwd)
 upstream_root="$project_root/upstream"
-expected_commit=ca2decae968f2fd37b43b777cca4ba597808ba52
+expected_commit=a9f6542fa507a841f40ab4f3fcb531427cd02550
 test "$(git -C "$upstream_root" rev-parse HEAD)" = "$expected_commit"
 git -C "$upstream_root" diff --exit-code
 git -C "$upstream_root" apply --check "$project_root/patches/galaxy-xr-client.patch"
@@ -32,7 +32,14 @@ test -s "$loader_dir/libopenxr_loader.so"
 
 cd "$upstream_root"
 export RUSTFLAGS="--remap-path-prefix=$HOME=/builder --remap-path-prefix=$project_root=/src"
-cargo +1.97.1 xtask build-client --release
+# Cargo clears RUSTFLAGS when launching a program through `cargo run`.
+# Run the compiled xtask directly so cargo-apk inherits the privacy flags.
+export RUSTUP_TOOLCHAIN=1.97.1
+# Native dependencies can retain compiler directories in DWARF even when Rust
+# paths are remapped. Strip debug metadata, not runtime code or license notices.
+export CARGO_PROFILE_RELEASE_STRIP=debuginfo
+cargo +1.97.1 build -p alvr_xtask
+"$upstream_root/target/debug/alvr_xtask" build-client --release
 apk="$upstream_root/build/alvr_client_android/alvr_client_android.apk"
 "$sdk_dir/build-tools/35.0.0/apksigner" verify "$apk"
 
@@ -49,11 +56,11 @@ if rg --text --quiet '(/Users/|[A-Za-z]:\\Users\\|192\.168\.)' "$audit_dir"; the
 fi
 
 cp "$apk" "$project_root/dist/Galaxy-XR-ALVR.apk"
-cp "$project_root/"{LICENSE,START-HERE.txt,SETUP.txt,Connect-USB.ps1,BUILD-PRIVACY.txt,ACTIONS.txt} "$project_root/dist/"
+cp "$project_root/"{LICENSE,README.md,START-HERE.txt,SETUP.txt,Connect-USB.ps1,ALVR-Unblock.ps1,BUILD-PRIVACY.txt,ACTIONS.txt} "$project_root/dist/"
 curl --fail --location --retry 3 \
   https://raw.githubusercontent.com/KhronosGroup/OpenXR-SDK-Source/release-1.1.36/LICENSE \
   --output "$project_root/dist/OpenXR-LICENSE.txt"
 cd "$project_root/dist"
 sha256sum Galaxy-XR-ALVR.apk > SHA256SUMS.txt
-printf 'Project version: Beta 0.1\nProject commit: %s\nALVR commit: %s\nOpenXR loader: 1.1.36\nSigning: ephemeral Android debug key; test only\n' \
+printf 'Project version: Beta 0.1 stable baseline\nALVR version: 20.14.1\nPackage: alvr.client.stabletest\nProject commit: %s\nALVR commit: %s\nOpenXR loader: 1.1.36\nSigning: ephemeral Android debug key; test only\n' \
   "$GITHUB_SHA" "$expected_commit" > BUILD-INFO.txt

@@ -4,11 +4,17 @@ on:
   workflow_dispatch:
   push:
     paths:
+      - 'README.md'
+      - '*.txt'
+      - '*.ps1'
       - '.github/workflows/build-apk.yml'
       - 'ci/**'
       - 'patches/**'
   pull_request:
     paths:
+      - 'README.md'
+      - '*.txt'
+      - '*.ps1'
       - '.github/workflows/build-apk.yml'
       - 'ci/**'
       - 'patches/**'
@@ -34,7 +40,7 @@ jobs:
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           repository: alvr-org/ALVR
-          ref: ca2decae968f2fd37b43b777cca4ba597808ba52
+          ref: a9f6542fa507a841f40ab4f3fcb531427cd02550
           path: upstream
           submodules: recursive
           persist-credentials: false

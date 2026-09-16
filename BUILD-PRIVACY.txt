@@ -6,7 +6,14 @@ Build with path remapping, then inspect all APK entries and signing metadata.
 
 Example on a Unix builder, from the patched upstream source root:
   export RUSTFLAGS="--remap-path-prefix=$HOME=/builder --remap-path-prefix=$PWD=/src"
-  cargo xtask build-client --release
+  export RUSTUP_TOOLCHAIN=1.97.1
+  export CARGO_PROFILE_RELEASE_STRIP=debuginfo
+  cargo +1.97.1 build -p alvr_xtask
+  ./target/debug/alvr_xtask build-client --release
+
+Run the compiled builder directly to preserve the flags. Native dependency DWARF
+can retain compiler directories even with Rust remapping; strip debug metadata
+and keep the all-entry scan. Do not bypass a failed privacy audit.
 
 Inspect the resulting libraries for usernames, local paths, device identifiers,
 network addresses and credentials. Check APK manifest, assets and certificate

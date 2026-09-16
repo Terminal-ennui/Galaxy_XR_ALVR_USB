@@ -1,103 +1,155 @@
-# Galaxy XR ALVR USB — Beta 0.1
+# Galaxy XR ALVR USB — Beta 0.1, stable baseline
 
-A proof of concept for streaming Windows SteamVR content to Samsung Galaxy XR over a USB data cable. It combines a small Galaxy XR client compatibility patch with an unmodified ALVR server and Android Debug Bridge (ADB) USB forwarding.
+Stream Windows SteamVR content to Samsung Galaxy XR over a USB 3 data cable using a small client compatibility patch and the **official, unmodified ALVR stable 20.14.1 server**.
 
-This is **compressed USB VR streaming**, not DisplayPort input. It still uses SteamVR; it does not bypass SteamVR with a standalone Windows OpenXR runtime. No firmware downgrade, bootloader unlock, or calibration extraction is required.
+This is compressed VR streaming, not DisplayPort input. SteamVR is still required. No firmware modification, bootloader unlock, or calibration extraction is needed.
 
 ## Start here
 
-This is an early beta, not a polished installer. The basic USB display test passed on one Galaxy XR with an RTX 3090 PC. Read the signing warning before replacing an existing ALVR app.
+### 1. Download the matching files
 
-### 1. Download the files
+- [Stable-baseline APK builds](https://github.com/Terminal-ennui/Galaxy_XR_ALVR_USB/actions/workflows/build-apk.yml): select a successful run for this stable-baseline PR/branch and download its artifact. Extract `Galaxy-XR-ALVR.apk`. Check `BUILD-INFO.txt` says ALVR **20.14.1**. Older artifacts and the original Beta 0.1 release use a different version; do not mix them.
+- [Official ALVR stable 20.14.1 Windows server ZIP](https://github.com/alvr-org/ALVR/releases/download/v20.14.1/alvr_streamer_windows.zip). Extract it into its own folder.
+- [Official stable release page](https://github.com/alvr-org/ALVR/releases/tag/v20.14.1): choose `alvr_streamer_windows.zip`, not Linux or a debug ZIP. Use **our patched headset APK**, not the upstream Android APK.
+- [Google Android platform-tools](https://developer.android.com/tools/releases/platform-tools): download the Windows version and extract `platform-tools` beside the APK and `Connect-USB.ps1`.
 
-- [This project's releases](https://github.com/Terminal-ennui/Galaxy_XR_ALVR_USB/releases): get `Galaxy-XR-ALVR.apk` and the Beta 0.1 setup ZIP containing `Connect-USB.ps1` and instructions.
-- [Matching official Windows ALVR server ZIP](https://github.com/alvr-org/ALVR-nightly/releases/download/v21.0.0-dev13%2Bnightly.2026.09.16/alvr_streamer_windows.zip). Extract it into its own folder and open `ALVR Dashboard.exe`.
-- [Official ALVR nightly release page](https://github.com/alvr-org/ALVR-nightly/releases/tag/v21.0.0-dev13%2Bnightly.2026.09.16), if you need to find the download under Assets. Choose `alvr_streamer_windows.zip`, not Linux or the debug ZIP.
-- [Google Android platform-tools for Windows](https://developer.android.com/tools/releases/platform-tools). Extract the `platform-tools` folder beside `Connect-USB.ps1` and the APK.
+The PC needs Steam, SteamVR, and a VR-capable GPU. Use a **USB 3 data cable connected directly to a USB 3 PC port**, and the headset's data port. You can charge the external battery separately.
 
-Use **our patched APK**, not `alvr_client_android.apk` from upstream's release page. The server version is `21.0.0-dev13`; the official nightly records the same upstream commit as our patch. The official server binary itself has not yet been tested here; the demonstrated unmodified server was locally built from that commit. Do not assume a different ALVR version is compatible.
+### 2. Install the headset client
 
-You also need Steam, SteamVR, a VR-capable Windows gaming PC, the headset's battery, and a USB data cable. For high bitrate, use a USB 3 cable and PC port. A charge-only cable will not work. Other GPUs have not been verified by this project.
+Enable Developer options and USB debugging on Galaxy XR. Connect the cable, wear the headset, and accept the debugging prompt for your own PC.
 
-### 2. Enable USB debugging and install the APK
-
-Enable Developer options and USB debugging in the headset's settings. Connect the headset's **data USB port** directly to the PC. Wear it and accept the USB debugging prompt for your own PC.
-
-Open PowerShell in the folder containing the downloaded files. Run:
+Open PowerShell in the downloaded files folder:
 
 ```powershell
 .\platform-tools\adb.exe devices -l
 .\platform-tools\adb.exe install -r .\Galaxy-XR-ALVR.apk
 ```
 
-The device must show `device`, not `unauthorized` or `offline`.
+The headset must show `device`, not `unauthorized` or `offline`.
 
-**Signing warning:** Beta 0.1 is debug-signed with a temporary CI key. Android may reject installation over an APK signed by a different key. Do not blindly uninstall a working client: uninstalling deletes its app data. Save settings first if you choose to remove the old development client. Future CI builds may also require reinstalling until retained release signing is configured. Our headset test used a locally re-signed copy of the CI APK solely to update the existing app without clearing its data; the published APK retains the original CI signature.
-
-The package is `alvr.client.dev`. If another stable ALVR app is installed, the launcher icons may look alike. This opens the correct development client:
+The launcher name is **ALVR Stable Test**, package `alvr.client.stabletest`. It is separate from the old nightly client and the official stable client. Open the correct one with:
 
 ```powershell
-.\platform-tools\adb.exe shell monkey -p alvr.client.dev -c android.intent.category.LAUNCHER 1
+.\platform-tools\adb.exe shell monkey -p alvr.client.stabletest -c android.intent.category.LAUNCHER 1
 ```
 
-### 3. Create the USB connection
+**Signing warning:** CI uses a temporary debug key. A new build usually cannot update a copy signed with a different key. Do not uninstall a working client without saving its settings; uninstalling deletes app data. Retained release signing is not configured. The newly generated CI package still needs its own headset acceptance test.
 
-Run:
+### 3. Set up USB forwarding
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\Connect-USB.ps1
 ```
 
-The script finds one authorized Galaxy XR and forwards PC ports 9943 and 9944 to the headset. It does not install an APK, change image quality, or disable sleep. Read it before running it. Administrator privileges are not required; this execution-policy bypass affects only that process.
+This script creates the two required ADB forwards. It does not install the APK, change quality, or prevent sleep. Administrator privileges are not required. The execution-policy bypass applies only to that process.
 
-**Run it again whenever USB is disconnected or the PC, headset, or ADB restarts.**
+**Run it again after unplugging USB or restarting the PC, headset, or ADB.**
 
-### 4. Connect ALVR and start SteamVR
+### 4. Connect to the PC
 
-1. Open the PC ALVR dashboard and our patched headset client.
-2. In the dashboard's Devices section, select the physical headset and choose **Trust**.
-3. Edit its manual IP/address to **`127.0.0.1`**.
-4. Select **TCP** streaming in the server connection settings.
-5. Start SteamVR from ALVR. Wear the headset during startup and complete any normal permission or boundary prompts.
-6. Confirm the dashboard says **Streaming** and you can see SteamVR in both eyes.
+1. Open `ALVR Dashboard.exe` from the **20.14.1** server folder, and open **ALVR Stable Test** on the headset.
+2. In the PC dashboard, add/trust the physical headset. Set its manual IP/address to **`127.0.0.1`**. If discovery doesn't show it, use **Add device manually**, give it a name, and enter that address.
+3. Select **TCP** in ALVR's connection settings.
+4. Start SteamVR from ALVR. Keep the headset on and complete normal permission/boundary prompts.
+5. Confirm ALVR says **Streaming** and SteamVR is visible in both eyes.
 
-The IP shown in the headset lobby may be its Wi-Fi address. **Do not copy that address for USB.** `127.0.0.1` on the PC connects through the ADB forwards.
+The IP shown inside the headset may be a Wi-Fi address. **Do not use that address for this USB setup.** On the PC, `127.0.0.1` reaches the headset through ADB forwarding.
 
-Use the Windows local desktop/console. Active Remote Desktop previously reproduced a green image in this setup. You can charge the external battery separately during use; the headset's data port does not charge it.
+Use the Windows local desktop/console, not an active Windows Remote Desktop session.
 
-### 5. Check the picture before increasing quality
+### 5. Start conservatively
 
-Start conservatively with HEVC, 72 Hz, 1440 × 1440 **per eye**, 60 Mbps target, SDR, and foveated encoding disabled. This is a suggested starting point, not a stability guarantee.
+Set quality in the **PC ALVR dashboard**. Start with HEVC, **72 Hz**, 1440 × 1440 per eye, 60 Mbps target, **8-bit SDR**, HDR off, and both foveated encoding and client-side foveation disabled. Increase one setting at a time.
 
-Adjust quality in the **PC ALVR dashboard**, one setting at a time. Codec and resolution changes may require restarting the stream. Stop if the picture is uncomfortable or badly aligned.
+### Important: re-enable ALVR after a SteamVR crash
 
-The visually accepted high setting was HEVC, 72 Hz, 2560 × 2560 per eye, 200 Mbps **target**, SDR, with foveated encoding disabled. The combined encoded stereo frame is 5120 × 2560; do not enter that as a per-eye size. Actual sustained bitrate, long-duration gaming, and 500 Mbps have not been established.
+**If SteamVR crashes on the first run or while testing quality settings, it may disable the ALVR add-on.** On the next launch, a pop-up may report a blocked/disabled add-on and ask you to re-enable it. This does not necessarily mean you need to reinstall ALVR.
+
+In SteamVR, open **Settings > Startup/Shutdown > Manage Add-ons** and enable **ALVR** again, then restart SteamVR. Menu wording can vary by SteamVR version.
+
+Alternatively, **close SteamVR completely** and run the included helper from the downloaded files folder:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\ALVR-Unblock.ps1
+```
+
+Then open the PC ALVR dashboard and start SteamVR again. The helper backs up SteamVR settings and clears only ALVR's safe-mode block; it does not change quality settings or fix the original crash. If a new quality setting caused the crash, restore your last working setting before retrying. SteamVR may block the add-on again if it crashes again.
+
+## Recommended upper setting for the tested RTX 3090 rig
+
+| Setting | Value |
+| --- | --- |
+| Server | Official ALVR stable 20.14.1 |
+| Connection | USB 3, ADB forwarding, TCP |
+| Codec | HEVC / H.265 |
+| Refresh target | 72 Hz |
+| Resolution | 2560 × 2560 **per eye** |
+| Bitrate mode / target | Constant, **375 Mbps** |
+| Color | 8-bit SDR; HDR off |
+| Foveated encoding / client-side foveation | Both off |
+
+The combined stereo frame is 5120 × 2560; **do not enter that as the per-eye resolution**.
+
+This is a personal, visually smooth upper setting for an **i7-11700K / RTX 3090**, NVIDIA driver **595.71**, not a universal default. For more margin, start at 200 Mbps and work upward. Other GPUs and demanding games may need lower settings.
+
+### 60-second benchmark
+
+A full 60-second SteamVR-scene capture on that rig completed without an event-stream interruption:
+
+| Measurement | Result |
+| --- | --- |
+| Actual video bitrate | 315 Mbps average; sampled intervals 286–348 Mbps |
+| Reported packet-loss counter increase | **0** |
+| Server / reported client FPS | 71.6 / 63.6 average |
+| ALVR pipeline latency | 113 ms average; 127 ms p95 |
+| GPU / hardware encoder utilization | 18% / 81% average |
+| GPU temperature / power | 58°C / 184 W average |
+
+GPU telemetry includes 60 samples spanning approximately 62 seconds and covering the stream capture. The owner reported the picture as smooth before the run. Client FPS telemetry nevertheless dipped as low as 24. **This is not a locked-72-FPS guarantee, a sustained-375-Mbps measurement, or a demanding-game endurance benchmark.** ALVR latency is estimated, not externally measured motion-to-photon latency. Zero reported packet loss does not mean zero dropped or repeated display frames.
+
+### Wi-Fi comparison: 6 GHz (Wi-Fi 7 reported)
+
+A separate 60-second Wi-Fi capture used the same 375 Mbps target, HEVC 8-bit, 72 Hz, per-eye resolution, foveation settings, and TCP protocol. The owner reported it as very smooth. USB stream forwarding was removed; the cable remained connected only for ADB telemetry.
+
+The headset reported **5975 MHz (6 GHz)** and Wi-Fi standard **8 / 802.11be (Wi-Fi 7)** with MLO immediately after the tests. This is the 6 GHz band also used by Wi-Fi 6E, but **this run is not a verified Wi-Fi 6E / 802.11ax benchmark**. Android's standard identifiers are documented in [ScanResult](https://developer.android.com/reference/android/net/wifi/ScanResult#WIFI_STANDARD_11BE).
+
+| Measurement | Earlier USB capture | Wi-Fi capture |
+| --- | --- | --- |
+| Actual video bitrate, average | 315 Mbps | 317 Mbps |
+| Reported packet-loss counter increase | **0** | **0** |
+| Server / reported client FPS, average | 71.6 / 63.6 | 71.4 / 63.9 |
+| ALVR pipeline latency, average / p95 | 113 / 127 ms | 124 / 128 ms |
+| Encoding / decoding latency, average | 13.3 / 55.5 ms | 13.4 / 55.4 ms |
+| GPU / hardware encoder utilization, average | 18% / 81% | 19% / 81% |
+
+The Wi-Fi capture completed without an event-stream interruption, with 120 statistics summaries and 60 GPU samples. Its reported client FPS ranged from 23 to 72. A subsequent **450 Mbps target produced visible jitter**, so the target was returned to **375 Mbps**.
+
+At these settings, Wi-Fi delivered similar actual bitrate and reported frame rates; **these results do not demonstrate a USB advantage**. These were separate short scene captures, not a controlled replay or endurance comparison. The USB run used the earlier local stable client; Wi-Fi used the CI-built stable APK. The latency difference cannot be attributed solely to transport. Both used TCP: zero ALVR-reported loss does not establish zero wireless loss or TCP retransmissions.
 
 ## Troubleshooting
 
 | Symptom | What to try |
 | --- | --- |
-| Waiting for streamer / asks to Trust | Open the PC dashboard, trust the physical headset, rerun the USB script, and check `127.0.0.1` plus TCP. |
-| No headset found | Use a known data cable/direct PC port, turn the headset on, and accept USB debugging. `unauthorized` needs approval; `offline` means it is not ready. |
-| Starting headset / black screen | Wear it normally with the sensor uncovered, check system prompts, and reopen the client. A normal reboot resolved this stall during our test; rerun the USB script afterward. |
-| Green picture | Leave the active Windows Remote Desktop session and use the local PC console. |
-| Disconnects after removal | Put the headset back on, reopen the client if needed, and rerun USB forwarding if it was lost. |
-| Jitter / decoder errors | Restore the last working setting and lower bitrate or resolution separately. |
+| Waiting for PC / Trust / connection timeout | Check the matching 20.14.1 server, open the correct headset app, rerun USB forwarding, and verify trusted manual address `127.0.0.1` with TCP. |
+| No headset found | Wake it, accept debugging, and use a known USB 3 data cable/direct port. |
+| Black screen / Starting headset | Wear it normally, check prompts, and reopen the client. Reboot normally if needed, then recreate USB forwarding. |
+| Green picture | Leave the active Windows Remote Desktop session and use the local console. |
+| Jitter after changing codec/quality or resuming | Restore the last good setting. Exit the headset client, SteamVR, and the PC ALVR dashboard; reopen all three and recreate USB forwarding. Restarting only one component may not clear it. If it persists, reduce bitrate. |
+| Pop-up reports ALVR blocked/disabled after a crash | [Re-enable ALVR or run `ALVR-Unblock.ps1`](#important-re-enable-alvr-after-a-steamvr-crash). Restore the last working quality setting if needed. |
 
-## Known limitations and test evidence
+## Builds and limitations
 
-- GitHub Actions built Beta 0.1 from project commit `183a5960adefe4a598a201fe7e7b89d25849e66c`, with upstream ALVR commit `ca2decae968f2fd37b43b777cca4ba597808ba52`.
-- Automated compilation, patch application, APK signature verification, path-remapping scan, and checksum checks passed. The downloaded artifact's checksum was verified locally.
-- The CI-built client, re-signed locally without rebuilding its code, connected over USB and displayed SteamVR correctly in both eyes after a headset reboot. This is a basic visual check, not a sustained game benchmark.
-- Off-head operation is **not reliable**. Stay-awake while powered and covering the sensor did not prevent sleep in the active-stream test. It slept after roughly 80 seconds with reason `xr_doff`; eye detection has not been confirmed as the cause.
-- Controller/input completeness, other PC hardware, and an APK install with the original CI signing key have not been validated here.
+CI pins upstream stable commit `a9f6542fa507a841f40ab4f3fcb531427cd02550`, applies the minimal Galaxy XR patch, builds the APK, checks its signature, scans for embedded builder paths, and supplies a checksum and build provenance.
 
-## Building and reporting issues
+The stable patch adds Android XR runtime/Full Space declarations, a separate launcher package, a 72 Hz capability fallback, and a smaller lobby swapchain. It retains stable upstream decoding and does **not** modify the Windows server.
 
-See [ACTIONS.txt](ACTIONS.txt) for GitHub build/artifact instructions, [SETUP.txt](SETUP.txt) for source build steps, and [BUILD-PRIVACY.txt](BUILD-PRIVACY.txt) for binary privacy/signing checks. Artifacts require GitHub sign-in and expire after 14 days; release downloads are separate.
+Local stable-client tests passed several headset removal/resume cycles. The CI-built stable APK was subsequently installed and reported visually smooth over USB and Wi-Fi. Sleep/resume and connection timeouts can still occur; off-head keep-awake is not guaranteed. Compilation alone is not hardware acceptance. No AV1, 10-bit, HDR, or 90 Hz support is claimed by this build.
 
-[Report a problem](https://github.com/Terminal-ennui/Galaxy_XR_ALVR_USB/issues) with client/server versions, GPU and driver, codec, Hz, per-eye resolution, target Mbps, reproduction steps, and whether the headset was worn. Review logs before posting: remove usernames, device names, serials, IP addresses, local paths, and credentials.
+See [ACTIONS.txt](ACTIONS.txt), [SETUP.txt](SETUP.txt), and [BUILD-PRIVACY.txt](BUILD-PRIVACY.txt). CI artifact downloads require GitHub sign-in and expire after 14 days. Release publication is separate.
 
-## License and upstream credit
+[Report a problem](https://github.com/Terminal-ennui/Galaxy_XR_ALVR_USB/issues) with versions, GPU/driver, codec, Hz, per-eye size, target Mbps, and reproduction steps. Review logs before posting; remove personal names, serials, network addresses, paths, and credentials.
 
-The source patch is [MIT licensed](LICENSE), with upstream copyright notices preserved. This project builds on [ALVR](https://github.com/alvr-org/ALVR). The APK also contains third-party components, including the generic Khronos OpenXR loader; their licenses remain applicable. This is an independent proof of concept, not an official Samsung or Valve product.
+## License and credit
+
+The source patch is [MIT licensed](LICENSE), with upstream notices preserved. This project builds on [ALVR](https://github.com/alvr-org/ALVR) and packages the generic Khronos OpenXR loader. Third-party licenses remain applicable. This is independent of Samsung and Valve.
