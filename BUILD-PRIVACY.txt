@@ -1,0 +1,23 @@
+APK PUBLICATION CHECK
+
+Do not upload an APK simply because the source repository is clean.
+Rust panic/debug strings can embed absolute builder paths in compiled libraries.
+Build with path remapping, then inspect all APK entries and signing metadata.
+
+Example on a Unix builder, from the patched upstream source root:
+  export RUSTFLAGS="--remap-path-prefix=$HOME=/builder --remap-path-prefix=$PWD=/src"
+  cargo xtask build-client --release
+
+Inspect the resulting libraries for usernames, local paths, device identifiers,
+network addresses and credentials. Check APK manifest, assets and certificate
+subject as well. Confirm the build tool preserved the remapping flags.
+Do not include keystores, private keys, local configuration or build logs.
+
+A different signing key cannot update an already installed Android application.
+Use the existing authorized key for local update tests, or obtain explicit consent
+before uninstalling an old client and deleting its data. Never distribute the key.
+Before a public release, select and securely retain an appropriate release key.
+
+The source patch is MIT. Prebuilt APKs also contain upstream dependencies/loaders;
+audit their licenses and include required redistribution notices separately.
+Do not claim the entire binary is exclusively MIT without checking dependencies.

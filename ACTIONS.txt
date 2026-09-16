@@ -1,0 +1,40 @@
+HOW TO GET A GITHUB-BUILT APK
+
+Project version: Beta 0.1.
+The Action is named "Build Galaxy XR APK - Beta 0.1".
+It builds pinned upstream ALVR plus this repository's Galaxy XR client patch.
+It does not upload anyone's local APK and does not publish a GitHub Release.
+
+For maintainers:
+1. Merge the reviewed workflow change into the repository's default branch.
+2. Open the GitHub repository, then choose Actions.
+3. Choose "Build Galaxy XR APK - Beta 0.1", then Run workflow and the desired branch.
+4. Wait for the run to finish. A green check means the automated build passed,
+   NOT that a real headset test passed.
+
+For testers:
+1. Open Actions and choose a successful "Build Galaxy XR APK - Beta 0.1" run.
+2. Scroll to Artifacts and download "Galaxy-XR-ALVR-beta-0.1-<run number>".
+3. Extract the downloaded ZIP. The client is Galaxy-XR-ALVR.apk.
+4. Read START-HERE.txt and install the APK using Android platform-tools.
+5. Use the matching PC server specified by SETUP.txt.
+
+GitHub artifact downloads require a signed-in account and repository access.
+The artifact is retained for 14 days. This private repo is not yet a public download.
+Builds run on relevant pushes/PRs; manual Run workflow appears after the workflow
+exists on the default branch. No signing secrets are needed for these test builds.
+
+SIGNING WARNING
+Each clean CI run uses a new temporary Android debug signing key.
+Its APK cannot generally update a client signed by another run or your old APK.
+Do not uninstall your working client without saving its settings: uninstalling
+deletes app data. A retained release-signing key is required for convenient updates;
+configure that separately using protected GitHub secrets before regular releases.
+No signing key is included in the artifact.
+
+AUTOMATED CHECKS
+Pinned ALVR source and cargo-apk revision, patch application, APK build, signature
+verification, compiler path remapping, builder-path/known-identifier scan, checksum.
+Only the generic Khronos OpenXR loader is packaged. Hardware behavior and third-party
+dependency license notices still need review before broad public redistribution.
+These checks reduce accidental exposure; they are not a complete secret audit.
