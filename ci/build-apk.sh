@@ -43,6 +43,15 @@ cargo +1.97.1 build -p alvr_xtask
 apk="$upstream_root/build/alvr_client_android/alvr_client_android.apk"
 "$sdk_dir/build-tools/35.0.0/apksigner" verify "$apk"
 
+# Android XR gates eye gaze and hand joints behind its own permissions; the Meta ones do not count.
+declared=$("$sdk_dir/build-tools/35.0.0/aapt2" dump permissions "$apk")
+for permission in android.permission.EYE_TRACKING_FINE android.permission.HAND_TRACKING; do
+  if ! grep -q -F "'$permission'" <<<"$declared"; then
+    echo "APK manifest check failed: $permission is not declared." >&2
+    exit 1
+  fi
+done
+
 # Inspect all unpacked entries, not only the client library. Fail without printing matches.
 audit_dir=$(mktemp -d "$RUNNER_TEMP/galaxy-xr-audit.XXXXXX")
 unzip -q "$apk" -d "$audit_dir"
