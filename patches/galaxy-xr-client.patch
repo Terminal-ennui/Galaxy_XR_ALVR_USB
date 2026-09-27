@@ -1,5 +1,25 @@
+diff --git a/alvr/client_core/src/lib.rs b/alvr/client_core/src/lib.rs
+index 7af1711e..d8d9884a 100644
+--- a/alvr/client_core/src/lib.rs
++++ b/alvr/client_core/src/lib.rs
+@@ -93,7 +93,14 @@ impl ClientCoreContext {
+         #[cfg(target_os = "android")]
+         {
+             dbg_client_core!("Getting permissions");
+-            alvr_system_info::try_get_permission(alvr_system_info::MICROPHONE_PERMISSION);
++            let mut permissions = vec![alvr_system_info::MICROPHONE_PERMISSION];
++            // Galaxy XR (Android XR) gates eye gaze and hand joints behind its own permissions.
++            // They share the microphone's request because back-to-back requests can be dropped.
++            if alvr_system_info::model_name() == "SM-I610" {
++                permissions.push("android.permission.EYE_TRACKING_FINE");
++                permissions.push("android.permission.HAND_TRACKING");
++            }
++            alvr_system_info::try_get_permissions(&permissions);
+             alvr_system_info::set_wifi_lock(true);
+         }
+ 
 diff --git a/alvr/client_openxr/Cargo.toml b/alvr/client_openxr/Cargo.toml
-index 152e38d..5546a2e 100644
+index 152e38d6..76142ba3 100644
 --- a/alvr/client_openxr/Cargo.toml
 +++ b/alvr/client_openxr/Cargo.toml
 @@ -26,7 +26,7 @@ libc = "0.2"
@@ -29,7 +49,7 @@ index 152e38d..5546a2e 100644
  
  [package.metadata.android.application.activity]
  config_changes = "density|keyboard|keyboardHidden|navigation|orientation|screenLayout|screenSize|uiMode"
-@@ -201,6 +201,18 @@ name = "com.yvr.intent.category.VR"
+@@ -201,6 +201,24 @@ name = "com.yvr.intent.category.VR"
  value = "vr_only"
  
  # Lynx entries
@@ -45,11 +65,17 @@ index 152e38d..5546a2e 100644
 +name = "android.software.xr.api.openxr"
 +required = true
 +
++# Android XR gates eye gaze and hand joints behind its own permissions.
++[[package.metadata.android.uses_permission]]
++name = "android.permission.EYE_TRACKING_FINE"
++[[package.metadata.android.uses_permission]]
++name = "android.permission.HAND_TRACKING"
++
  [[package.metadata.android.queries.package]]
  name = "com.ultraleap.tracking.service"
  [[package.metadata.android.queries.package]]
 diff --git a/alvr/client_openxr/src/lib.rs b/alvr/client_openxr/src/lib.rs
-index 3e35add..ecad12e 100644
+index 3e35add1..07de99d3 100644
 --- a/alvr/client_openxr/src/lib.rs
 +++ b/alvr/client_openxr/src/lib.rs
 @@ -137,6 +137,10 @@ pub fn entry_point() {
@@ -81,3 +107,60 @@ index 3e35add..ecad12e 100644
              &last_lobby_message,
          );
          let lobby_body_tracking_config = BodyTrackingSourcesConfig {
+diff --git a/alvr/system_info/src/android.rs b/alvr/system_info/src/android.rs
+index 782fae08..4d2854e6 100644
+--- a/alvr/system_info/src/android.rs
++++ b/alvr/system_info/src/android.rs
+@@ -57,6 +57,52 @@ pub fn try_get_permission(permission: &str) {
+     }
+ }
+ 
++/// Requests every permission that is not granted yet in a single request. Separate back-to-back
++/// requests are not reliably all shown.
++pub fn try_get_permissions(permissions: &[&str]) {
++    let vm = vm();
++    let mut env = vm.attach_current_thread().unwrap();
++
++    let mut missing_permissions = vec![];
++    for permission in permissions {
++        let permission = env.new_string(permission).unwrap();
++        let permission_status = env
++            .call_method(
++                unsafe { JObject::from_raw(context()) },
++                "checkSelfPermission",
++                "(Ljava/lang/String;)I",
++                &[(&permission).into()],
++            )
++            .unwrap()
++            .i()
++            .unwrap();
++        if permission_status != 0 {
++            missing_permissions.push(permission);
++        }
++    }
++
++    if missing_permissions.is_empty() {
++        return;
++    }
++
++    let string_class = env.find_class("java/lang/String").unwrap();
++    let permission_array = env
++        .new_object_array(missing_permissions.len() as i32, string_class, JObject::null())
++        .unwrap();
++    for (index, permission) in missing_permissions.iter().enumerate() {
++        env.set_object_array_element(&permission_array, index as i32, permission)
++            .unwrap();
++    }
++
++    env.call_method(
++        unsafe { JObject::from_raw(context()) },
++        "requestPermissions",
++        "([Ljava/lang/String;I)V",
++        &[(&permission_array).into(), 0.into()],
++    )
++    .unwrap();
++}
++
+ pub fn build_string(ty: &str) -> String {
+     let vm = vm();
+     let mut env = vm.attach_current_thread().unwrap();

@@ -146,9 +146,11 @@ At these settings, Wi-Fi delivered similar actual bitrate and reported frame rat
 
 ## Builds and limitations
 
-CI pins upstream stable commit `a9f6542fa507a841f40ab4f3fcb531427cd02550`, applies the minimal Galaxy XR patch, builds the APK, checks its signature, scans for embedded builder paths, and supplies a checksum and build provenance.
+CI pins upstream stable commit `a9f6542fa507a841f40ab4f3fcb531427cd02550`, applies the minimal Galaxy XR patch, builds the APK, checks its signature and that it declares Android XR's eye- and hand-tracking permissions, scans for embedded builder paths, and supplies a checksum and build provenance.
 
 The stable patch adds Android XR runtime/Full Space declarations, a separate launcher package, a 72 Hz capability fallback, and a smaller lobby swapchain. It retains stable upstream decoding and does **not** modify the Windows server.
+
+On `main` (not yet in a published release), the patch also declares Android XR's eye- and hand-tracking permissions and asks for them together with the microphone at first launch. Without them the Galaxy XR sends no eye gaze or hand joints. This has not been tested on the headset yet.
 
 Local stable-client tests passed several headset removal/resume cycles. The CI-built stable APK was subsequently installed and reported visually smooth over USB and Wi-Fi. Sleep/resume and connection timeouts can still occur; off-head keep-awake is not guaranteed. Compilation alone is not hardware acceptance. No AV1, 10-bit, HDR, or 90 Hz support is claimed by this build.
 
