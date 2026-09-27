@@ -4,6 +4,8 @@ Stream Windows SteamVR content to Samsung Galaxy XR over a USB 3 data cable usin
 
 This is compressed VR streaming, not DisplayPort input. SteamVR is still required. No firmware modification, bootloader unlock, or calibration extraction is needed.
 
+**Status:** experimental and provided as-is, with no support or maintenance promise. Report bugs through this repository's Issues, and security problems privately through **Security > Report a vulnerability**.
+
 ## Start here
 
 ### 1. Download the matching files
